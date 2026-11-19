@@ -1,0 +1,85 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    int id;
+    char name[50];
+    char group[4];
+    int age;
+    char phone[15];
+    char last_donation[11];
+} Donor;
+
+typedef struct {
+    char group[4];
+    int units;
+} Stock;
+
+typedef struct {
+    int count;
+    int youngest_id;
+} EligibilityResult;
+
+void register_donor(Donor *donors, int *count, const Donor *new_donor);
+int check_eligibility(const Donor *donor);
+int find_donors(const Donor *donors, int count, const char *group);
+void update_stock(Stock *stock, int index, int units);
+void save_donors(const Donor *donors, int count);
+void load_donors(Donor **donors, int *count);
+void save_stock(const Stock *stock, int count);
+void load_stock(Stock *stock, int count);
+
+void register_donor(Donor *donors, int *count, const Donor *new_donor)
+{
+    donors[*count] = *new_donor;
+    (*count)++;
+}
+
+int check_eligibility(const Donor *donor)
+{
+    return donor->age >= 18;
+}
+
+int find_donors(const Donor *donors, int count, const char *group)
+{
+    int found = 0;
+
+    for (int i = 0; i < count; i++) {
+        if (strcmp(donors[i].group, group) == 0 &&
+            check_eligibility(&donors[i])) {
+            found++;
+        }
+    }
+
+    return found;
+}
+
+void update_stock(Stock *stock, int index, int units)
+{
+    stock[index].units += units;
+}
+
+void save_donors(const Donor *donors, int count)
+{
+    FILE *fp = fopen("donors.txt", "w");
+
+    if (fp == NULL) {
+        perror("donors.txt");
+        return;
+    }
+
+    for (int i = 0; i < count; i++) {
+        fprintf(fp, "%d,%s,%s,%d,%s,%s\n",
+                donors[i].id, donors[i].name,
+                donors[i].group, donors[i].age,
+                donors[i].phone, donors[i].last_donation);
+    }
+
+    fclose(fp);
+}
+
+int main(void)
+{
+    return 0;
+}
