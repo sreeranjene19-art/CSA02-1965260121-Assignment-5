@@ -1,0 +1,96 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int group_code;
+    int units;
+} Stock;
+
+typedef struct {
+    int id;
+    char name[50];
+    char group[4];
+    int age;
+    char phone[15];
+    char date[11];
+} Donor;
+
+void save_donors(Donor donors[], int count)
+{
+    FILE *fp = fopen("donors.txt", "w");
+
+    if (fp == NULL) {
+        perror("donors.txt");
+        return;
+    }
+
+    for (int i = 0; i < count; i++) {
+        fprintf(fp, "%d %s %s %d %s %s\n",
+                donors[i].id,
+                donors[i].name,
+                donors[i].group,
+                donors[i].age,
+                donors[i].phone,
+                donors[i].date);
+    }
+
+    fclose(fp);
+}
+
+void save_stock(Stock stock[], int count)
+{
+    FILE *fp = fopen("stock.dat", "wb");
+
+    if (fp == NULL) {
+        perror("stock.dat");
+        return;
+    }
+
+    fwrite(stock, sizeof(Stock), count, fp);
+
+    fclose(fp);
+}
+
+int update_stock_file(int index, int units)
+{
+    FILE *fp = fopen("stock.dat", "rb+");
+
+    if (fp == NULL) {
+        perror("stock.dat");
+        return 0;
+    }
+
+    Stock s;
+
+    if (fseek(fp, index * sizeof(Stock), SEEK_SET) != 0 ||
+        fread(&s, sizeof(Stock), 1, fp) != 1) {
+        fclose(fp);
+        return 0;
+    }
+
+    s.units = units;
+
+    if (fseek(fp, -(long)sizeof(Stock), SEEK_CUR) != 0 ||
+        fwrite(&s, sizeof(Stock), 1, fp) != 1) {
+        fclose(fp);
+        return 0;
+    }
+
+    fclose(fp);
+    return 1;
+}
+
+int main(void)
+{
+    Stock stock[8] = {
+        {1, 40}, {2, 25}, {3, 12}, {4, 8},
+        {5, 30}, {6, 15}, {7, 20}, {8, 10}
+    };
+
+    save_stock(stock, 8);
+
+    if (update_stock_file(3, 20))
+        printf("Stock updated successfully\n");
+
+    return 0;
+}
