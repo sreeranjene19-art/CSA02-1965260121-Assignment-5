@@ -1,0 +1,145 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+typedef struct {
+    int id;
+    char name[50];
+    char group[4];
+    int age;
+} Donor;
+
+typedef struct {
+    int group_code;
+    int units;
+} Stock;
+
+void write_text(Donor donors[], int n)
+{
+    FILE *fp = fopen("donors.txt", "w");
+
+    if (fp == NULL) {
+        perror("donors.txt");
+        return;
+    }
+
+    for (int i = 0; i < n; i++) {
+        fprintf(fp, "%d %s %s %d\n",
+                donors[i].id,
+                donors[i].name,
+                donors[i].group,
+                donors[i].age);
+    }
+
+    fclose(fp);
+}
+
+void write_binary(Donor donors[], int n)
+{
+    FILE *fp = fopen("donors.dat", "wb");
+
+    if (fp == NULL) {
+        perror("donors.dat");
+        return;
+    }
+
+    fwrite(donors, sizeof(Donor), n, fp);
+
+    fclose(fp);
+}
+
+void read_text(void)
+{
+    FILE *fp = fopen("donors.txt", "r");
+
+    if (fp == NULL) {
+        perror("donors.txt");
+        return;
+    }
+
+    Donor d;
+
+    while (fscanf(fp, "%d %49s %3s %d",
+                  &d.id, d.name, d.group, &d.age) == 4) {
+        printf("%d %s %s %d\n",
+               d.id, d.name, d.group, d.age);
+    }
+
+    fclose(fp);
+}
+
+void read_binary(void)
+{
+    FILE *fp = fopen("donors.dat", "rb");
+
+    if (fp == NULL) {
+        perror("donors.dat");
+        return;
+    }
+
+    Donor d;
+
+    while (fread(&d, sizeof(Donor), 1, fp) == 1) {
+        printf("%d %s %s %d\n",
+               d.id, d.name, d.group, d.age);
+    }
+
+    fclose(fp);
+}
+
+int update_units(FILE *fp, int index, int units)
+{
+    Stock s;
+
+    if (fseek(fp, (long)index * sizeof(Stock), SEEK_SET) != 0)
+        return 0;
+
+    if (fread(&s, sizeof(Stock), 1, fp) != 1)
+        return 0;
+
+    s.units = units;
+
+    if (fseek(fp, -(long)sizeof(Stock), SEEK_CUR) != 0)
+        return 0;
+
+    if (fwrite(&s, sizeof(Stock), 1, fp) != 1)
+        return 0;
+
+    return 1;
+}
+
+int main(void)
+{
+    FILE *fp = tmpfile();
+
+    if (fp == NULL) {
+        perror("tmpfile");
+        return 1;
+    }
+
+    Stock initial[5] = {
+        {1, 40}, {2, 25}, {3, 12}, {4, 8}, {5, 30}
+    };
+
+    fwrite(initial, sizeof(Stock), 5, fp);
+
+    printf("update record 3: %s\n",
+           update_units(fp, 3, 20) ? "done" : "failed");
+
+    printf("update record 9: %s\n",
+           update_units(fp, 9, 20) ? "done" : "failed");
+
+    rewind(fp);
+
+    Stock s;
+
+    while (fread(&s, sizeof(s), 1, fp) == 1)
+        printf("%d:%d ", s.group_code, s.units);
+
+    printf("\n");
+
+    fclose(fp);
+
+    return 0;
+}
