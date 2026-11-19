@@ -1,0 +1,46 @@
+#include <stdio.h>
+
+int digital_root(int n)
+{
+    if (n < 10)
+        return n;
+
+    int sum = 0;
+
+    while (n > 0) {
+        sum += n % 10;
+        n /= 10;
+    }
+
+    return digital_root(sum);
+}
+
+long long power_linear(long long base, int n)
+{
+    if (n == 0)
+        return 1;
+
+    return base * power_linear(base, n - 1);
+}
+
+long long power_fast(long long base, int n)
+{
+    if (n == 0)
+        return 1;
+
+    long long half = power_fast(base, n / 2);
+
+    if (n % 2 == 0)
+        return half * half;
+
+    return base * half * half;
+}
+
+int main(void)
+{
+    printf("Digital root: %d\n", digital_root(9875));
+    printf("Linear power: %lld\n", power_linear(2, 5));
+    printf("Fast power: %lld\n", power_fast(2, 5));
+
+    return 0;
+}
