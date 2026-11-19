@@ -1,0 +1,33 @@
+#include <stdio.h>
+
+long long calls = 0;
+
+long long power_fast_wrong(long long base, int exp)
+{
+    calls++;
+
+    if (exp == 0)
+        return 1;
+
+    if (exp % 2 == 0)
+        return power_fast_wrong(base, exp / 2) *
+               power_fast_wrong(base, exp / 2);
+
+    return base * power_fast_wrong(base, exp / 2) *
+           power_fast_wrong(base, exp / 2);
+}
+
+int main(void)
+{
+    int n[] = {10, 100, 1000, 10000};
+
+    for (int i = 0; i < 4; i++) {
+        calls = 0;
+
+        power_fast_wrong(1, n[i]);
+
+        printf("n = %d, calls = %lld\n", n[i], calls);
+    }
+
+    return 0;
+}
