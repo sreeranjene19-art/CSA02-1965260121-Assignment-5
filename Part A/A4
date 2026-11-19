@@ -1,0 +1,62 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    int id;
+    char name[50];
+    char group[4];
+    int age;
+} Donor;
+
+typedef struct {
+    Donor *data;
+    int size;
+    int capacity;
+} DonorList;
+
+int add_donor(DonorList *list, const Donor *donor)
+{
+    if (list->size == list->capacity) {
+
+        int new_capacity =
+            (list->capacity == 0) ? 2 : list->capacity * 2;
+
+        Donor *p = realloc(
+            list->data,
+            new_capacity * sizeof(Donor)
+        );
+
+        if (p == NULL) {
+            perror("Memory allocation failed");
+            return 0;
+        }
+
+        list->data = p;
+        list->capacity = new_capacity;
+    }
+
+    list->data[list->size] = *donor;
+    list->size++;
+
+    return 1;
+}
+
+int main(void)
+{
+    DonorList list = {NULL, 0, 0};
+
+    Donor d = {7001, "Arun", "O+", 25};
+
+    if (add_donor(&list, &d)) {
+        printf("Donor added successfully\n");
+    }
+
+    printf("Size = %d\n", list.size);
+    printf("Capacity = %d\n", list.capacity);
+
+    free(list.data);
+    list.data = NULL;
+
+    return 0;
+}
